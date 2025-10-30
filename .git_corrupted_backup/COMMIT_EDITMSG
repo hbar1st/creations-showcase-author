@@ -1,0 +1,25 @@
+initial commit
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch main
+# Your branch is up to date with 'origin/main'.
+#
+# Changes to be committed:
+#	modified:   .gitignore
+#	modified:   README.md
+#	new file:   eslint.config.js
+#	new file:   index.html
+#	new file:   package-lock.json
+#	new file:   package.json
+#	new file:   public/vite.svg
+#	new file:   src/App.css
+#	new file:   src/App.jsx
+#	new file:   src/NavBar.jsx
+#	new file:   src/Signup.jsx
+#	new file:   src/assets/hamburger_menu.svg
+#	new file:   src/assets/react.svg
+#	new file:   src/index.css
+#	new file:   src/main.jsx
+#	new file:   vite.config.js
+#
