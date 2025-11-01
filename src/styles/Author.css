@@ -5,6 +5,7 @@
   text-align: center;
 }
 
+
 nav {
   background-color: white;
   display: grid;
@@ -34,10 +35,6 @@ nav {
     /*outline: 1px dotted #a85eea;*/
   }
   
-  > button:last-of-type {
-    background-color: #ba54f3;
-    text-shadow: 1px 0px 1px #2c1045, 0px 1px 1px #dcb5ff;
-  }
 }
 
 dialog {

@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import '../styles/App.css'
 import Navbar from "./Navbar.jsx";
-import Signup from "./Signup.jsx"
+import Signup from "./Signup.jsx";
+import Login from "./Login.jsx"
+import ValidationErrors from './ValidationErrors.jsx';
+import AuthError from "./AuthError.jsx";
 
-//import reactLogo from './assets/react.svg'
-//import viteLogo from '/vite.svg'
+import { getToken } from "../util/storage";
 
 function App() {
 
@@ -18,7 +20,16 @@ function App() {
   const [userDetails, setUserDetails] = useState({
     email: '', firstname:'', lastname:'', nickname:'', password:'', 'confirm-password':''
   });
+  const [validationDetails, setValidationDetails] = useState([]);
+  const [authDetails, setAuthDetails] = useState(null);
     
+
+  useEffect(() => {
+    if (!getToken()) {
+      setLoginFormShown(true);
+    }
+  },[]);
+  
   function handleLoginClick() {
     setLoginFormShown(true)
   }
@@ -52,14 +63,39 @@ function App() {
           Wanna comment on other people's work? Head over to our sister site:{" "}
           <a href={CS_CLIENT}>Creations Showcase - Review Page!</a>
         </p>
-        <Signup
-          userDetails={userDetails}
-          setValidationDetails={setValidationDetails}
-          setUserDetails={setUserDetails}
-          api={CS_API_URL}
-          signupFormShown={signupFormShown}
-          setSignupFormShown={setSignupFormShown}
-        />
+        {signupFormShown && (
+          <Signup
+            userDetails={userDetails}
+            setUserDetails={setUserDetails}
+            setValidationDetails={setValidationDetails}
+            api={CS_API_URL}
+            signupFormShown={signupFormShown}
+            setSignupFormShown={setSignupFormShown}
+            setLoginFormShown={setLoginFormShown}
+          />
+        )}
+        {loginFormShown && (
+          <Login
+            userDetails={userDetails}
+            setUserDetails={setUserDetails}
+            setDetails={setAuthDetails}
+            api={CS_API_URL}
+            loginFormShown={loginFormShown}
+            setLoginFormShown={setLoginFormShown}
+          />
+        )}
+        {validationDetails && validationDetails.length > 0 && (
+          <ValidationErrors
+            details={validationDetails}
+            setDetails={setValidationDetails}
+          />
+        )}
+        {authDetails && (
+          <AuthError
+            details={authDetails}
+            setDetails={setAuthDetails}
+          />
+        )}
       </main>
     </>
   );

@@ -1,14 +1,14 @@
 import { useRef, useEffect } from 'react'
 import "../styles/App.css";
 
-export default function ValidationErrors({
+export default function AuthError({
   details, setDetails
 }) {
   
   const errorRef = useRef(null);
   
   useEffect(() => {
-    if (details && details.length > 0) {
+    if (details) {
       errorRef.current.showModal();
     } else {
       errorRef.current.close();
@@ -17,25 +17,19 @@ export default function ValidationErrors({
   
   function handleOkBtn(e) {
     e.preventDefault();
-    setDetails([]);
+    setDetails(null);
   }
-  console.log("in ValidationErrors: ", details);
+  console.log("in AuthErrors: ", details);
   return (
     <dialog className="error-dialog" ref={errorRef}>
     <header>
-    <h1>Failed to complete sign-up.</h1>
+    <h1>Failed to login.</h1>
     </header>
-    <ul>{
-      details.map(el => {
-        const random_id = crypto.randomUUID();
-        return (<li id={random_id} key={random_id}>
-        <span>
-        Issue found with {el.path} {el.type}:
-        </span>
-        <span> {el.msg}</span>
-        </li>);
-      })
-    }</ul>
+    <ul>
+      <li>
+        <span>{details.message}</span>
+      </li>
+    </ul>
     <button type="button" onClick={handleOkBtn}>
     Ok
     </button>

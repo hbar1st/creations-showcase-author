@@ -1,8 +1,7 @@
 import App from "./components/App";
-import Signup from "./components/App";
-
-//import AuthErrorPage from "./components/AuthErrorPage";
 import ErrorPage from "./components/ErrorPage";
+import Author from "./components/Author";
+import PrivateRoutes from "./components/PrivateRoutes"
 
 const routes = [
   {
@@ -10,13 +9,13 @@ const routes = [
     element: <App />,
     errorElement: <ErrorPage />,
   },
-  /*{
-    path: "login",
-    element: <Login />,
-  },*/
   {
-    path: "signup",
-    element: <Signup />,
+    path: '/private',
+    element: <PrivateRoutes />,
+    errorElement: <ErrorPage />,
+    children: [
+      { path: 'author', element: <Author />}
+    ]
   },
 ];
 

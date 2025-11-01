@@ -12,9 +12,11 @@ export default function ErrorPage() {
       <Link to="/">
         You can go back to the home page by clicking here, though!
       </Link>
+      <p>{error.timestamp ?? new Date().toUTCString()}</p>
       <p>
-        <span>error.timestamp ?? (new Date()).toUTCString()</span>
-        <i>{error.message}</i>
+        Error Message:{" "}
+        <i>
+          {error.message || error.statusText}</i>
       </p>
     </div>
   );
