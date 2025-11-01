@@ -2,6 +2,7 @@ import App from "./components/App";
 import ErrorPage from "./components/ErrorPage";
 import Author from "./components/Author";
 import PrivateRoutes from "./components/PrivateRoutes"
+import { getDashboardData } from "./util/apiUtils"
 
 const routes = [
   {
@@ -14,7 +15,12 @@ const routes = [
     element: <PrivateRoutes />,
     errorElement: <ErrorPage />,
     children: [
-      { path: 'author', element: <Author />}
+      {
+        path: 'author',
+        element: <Author />,
+        loader: getDashboardData,
+        HydrateFallback: () => {}
+      }
     ]
   },
 ];

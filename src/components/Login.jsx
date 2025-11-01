@@ -58,16 +58,16 @@ function Login({
       
       setProgressShown(false);
       if (res.status === 404) {
+        console.log("In Login component and failing to authorize.")
         throw new Response("API Not Found", { status: 404 });
       }
       if (res.ok) {
-        const token = res.headers.get("Authorization").split('Bearer ').join('');
+        console.log("In Login component, res status is: ", res.status)
+        const token = (res.headers.get("Authorization").split(' '))[1];
         // grab the jwt token and store it!
         setToken(token)
         // todo show the showcase page
         navigate("/private/author");
-        
-        //redirect("/private/author");
       } else {
         // show these errors somewhere
         const data = await res.json();

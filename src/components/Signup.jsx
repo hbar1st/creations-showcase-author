@@ -1,6 +1,5 @@
 import "../styles/App.css";
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
 
 function Signup({
   userDetails,
@@ -16,7 +15,6 @@ function Signup({
     
   const [progressShown, setProgressShown] = useState(false);
   
-   let navigate = useNavigate();
     
     useEffect(() => {
       if (signupFormShown) {
@@ -43,8 +41,10 @@ function Signup({
       setValidationDetails([]);
     }
     
-    async function signUp(formData) {
+  async function signUp(formData) {
+    if (signupRef.current.hasAttribute('data-triggered')) return;
       try {
+        signupRef.current.toggleAttibute('data-triggered')
         setProgressShown(true);
         setSignupFormShown(false);
         const res = await fetch(`${api}/user/sign-up`, {
