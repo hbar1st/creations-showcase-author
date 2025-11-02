@@ -7,4 +7,5 @@
 
 .projectsHeading {
   grid-area: header;
+  justify-self: flex-start;
 }

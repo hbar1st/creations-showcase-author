@@ -1,13 +1,49 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import { clearToken, getToken } from "../util/storage";
 
 // const CS_API_URL = "https://civic-janenna-hbar1stdev-7cb31133.koyeb.app";
 export const CS_API_URL = "http://localhost:3000";
-export const getHeader =  (token) =>( {
+
+export const getHeader = (token) => ({
   "Content-Type": "application/x-www-form-urlencoded",
   Authorization: `Bearer ${token}`,
 });
+
+
+export async function callPutAPI(route, formData) {
+    if (!getToken) {
+      console.trace(getToken);
+      throw new Error("Unexpected error: token is missing");
+    }
+    try {
+      const res = await fetch(`${CS_API_URL}${route}`, {
+        method: "PUT",
+        headers: getHeader(getToken()),
+        body: new URLSearchParams(formData),
+      });
+      if (res.status === 401) {
+        console.log("trying to get data but not authorized");
+        clearToken();
+        navigate("/login", { state: location.pathname });
+      } else if (res.ok || res.status === 400) {
+        const data = await res.json();
+        console.log("this is the data the page should show: ", data);
+        return data;
+      } else {
+        throw new Error(
+          "Internal error. Failed to contact the server. Contact support if the issue persists. Status code: " +
+            res.status
+        );
+      }
+    } catch (error) {
+      console.log(error, error.stack);
+      throw new Error(
+        "Internal error. Failed to complete the request. Contact support if the issue persists"
+      );
+    }
+  }
+
 
 export function useAuthorizeToken() {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -42,45 +78,46 @@ export function useAuthorizeToken() {
   return isAuthorized;
 }
 
-export function useAPI(route) {
+export function useGetAPI(route) {
   const [data, setData] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     async function callAPI() {
       if (!getToken) {
         console.trace(getToken);
-        throw new Error("Unexpected error: token is missing")
+        throw new Error("Unexpected error: token is missing");
       }
-      const res = await fetch(`${CS_API_URL}${route}`, {
-        method: "GET",
-        headers: getHeader(getToken()),
-      });
-      if (res.status === 401) {
-        console.log("trying to get user data but not authorized");
-        clearToken();
-        navigate("/login" );
-      } else if (res.ok) {
-        const data = await res.json();
-        console.log("this is the data the loader should show: ", data.user);
-        setData(data);
-      } else {
+      try {
+        const res = await fetch(`${CS_API_URL}${route}`, {
+          method: "GET",
+          headers: getHeader(getToken()),
+        });
+        if (res.status === 401) {
+          console.log("trying to get user data but not authorized");
+          clearToken();
+          navigate("/login", { state: location.pathname });
+        } else if (res.ok) {
+          const data = await res.json();
+          console.log("this is the data the loader should show: ", data.user);
+          setData(data);
+        } else {
+          throw new Error(
+            "Internal error. Failed to contact the server. Contact support if the issue persists."
+          );
+        }
+      } catch (error) {
+        console.log(error, error.stack);
         throw new Error(
-          "Internal error. Failed to contact the server. Contact support if the issue persists."
+          "Internal error. Failed to complete the request. Contact support if the issue persists"
         );
       }
     }
     if (route) {
       callAPI();
     }
-  }, [navigate, route]);
+  }, [location.pathname, navigate, route]);
 
   return data;
 }
-/*
-export async function getDashboardData() {
-  // TODO call the api to get all the data needed to display the author dashboard
-  const userProfile = useAPI(`${CS_API_URL}/user`);
-  console.log("did I get the data? ", userProfile);
-}
-*/

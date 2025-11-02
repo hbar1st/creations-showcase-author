@@ -6,7 +6,7 @@ import Signup from "./Signup.jsx";
 import Login from "./Login.jsx";
 import ValidationErrors from "./ValidationErrors.jsx";
 import AuthError from "./AuthError.jsx";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 import { CS_API_URL, useAuthorizeToken } from "../util/apiUtils";
 
@@ -30,7 +30,10 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    if (!isAuthorized && location.path === '/login') {
+    console.log("isAuthorized? ", isAuthorized)
+    
+    console.log("location.path is /login? ", location.pathname);
+    if (!isAuthorized && location.pathname === '/login') {
       setLoginFormShown(true);
     }
   }, [location, isAuthorized]);
@@ -93,6 +96,7 @@ function App() {
           <ValidationErrors
             details={validationDetails}
             setDetails={setValidationDetails}
+            action="sign-up"
           />
         )}
         {authDetails && (
