@@ -7,5 +7,6 @@ export function getToken() {
 }
 
 export function clearToken() {
+  console.trace("clearToken")
   localStorage.removeItem("cs-hb-jwt");
 }

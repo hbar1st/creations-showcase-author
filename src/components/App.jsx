@@ -6,9 +6,9 @@ import Signup from "./Signup.jsx";
 import Login from "./Login.jsx";
 import ValidationErrors from "./ValidationErrors.jsx";
 import AuthError from "./AuthError.jsx";
+import { useLocation } from "react-router-dom";
 
-import { clearToken, getToken } from "../util/storage";
-import { API_HEADERS, CS_API_URL } from "../util/apiUtils";
+import { CS_API_URL, useAuthorizeToken } from "../util/apiUtils";
 
 function App() {
   // this is the creations showcase api url. It may change, so maybe place it in .env? //TODO consider the implications
@@ -26,30 +26,14 @@ function App() {
   });
   const [validationDetails, setValidationDetails] = useState([]);
   const [authDetails, setAuthDetails] = useState(null);
+  const isAuthorized = useAuthorizeToken();
+  const location = useLocation();
 
   useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        const res = await fetch(`${CS_API_URL}/user/authenticate`, {
-          method: "GET",
-          headers: API_HEADERS,
-        });
-        if (res.status === 404) {
-          console.log("umm, api call didn't go thru?");
-          throw new Error("Internal Error. Contact support if error persists.");
-        } else if (!res.ok) {
-          clearToken();
-          setLoginFormShown(true);
-        }
-      } catch (error) {
-        console.log(error, error.stack);
-        throw new Error(error.message);
-      }
-    };
-    if (getToken()) {
-      verifyToken();
+    if (!isAuthorized && location.path === '/login') {
+      setLoginFormShown(true);
     }
-  },[]);
+  }, [location, isAuthorized]);
 
   function handleLoginClick() {
     setLoginFormShown(true);
@@ -66,7 +50,7 @@ function App() {
 
   return (
     <>
-      {getToken() ? <AuthorNavbar /> : <Navbar props={navProps} />}
+      {isAuthorized ? <AuthorNavbar /> : <Navbar props={navProps} />}
       <main>
         <h1>Welcome to the Creations Showcase - Authors Page!</h1>
         <p>

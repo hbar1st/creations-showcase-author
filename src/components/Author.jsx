@@ -1,29 +1,19 @@
-import { useLoaderData } from "react-router";
+import { useAPI } from "../util/apiUtils";
 
-import "../styles/Author.css";
+import styles from "../styles/Author.module.css";
+import Projects from "./Projects";
 
 export default function Author() {
-  
-  const { userProfile } = useLoaderData();
-  console.log("here's the data in the associated component: ", userProfile)
-  return (
-    <main>
-      <h1>This is the author dashboard?</h1>
-      <article>
-        <p>Welcome, {userProfile.firstname}</p>
-      </article>
-      <section>
+  const userProfile = useAPI('/user');
 
-      </section>
-    </main>
-  );
+  if (userProfile) {
+    return (
+      <main className={styles.authorsMain}>
+        <h1 className={styles.projectsHeading}>{userProfile.user.firstname}, here are your projects:</h1>
+        <Projects />
+      </main>
+    );
+  } else {
+    return <div>Loading...</div>;
+  }
 }
-
-/*
-{
-    "email": "hbar1stdev@gmail.com",
-    "firstname": "Hana",
-    "lastname": "Banana",
-    "nickname": "Johnny"
-}
-    */

@@ -8,7 +8,7 @@ export default function PrivateRoutes() {
   return (
     <>
       <AuthorNavbar />
-      {authToken ? <Outlet /> : <Navigate to="/" />}
+      {authToken ? <Outlet /> : <Navigate to="/" state={{}} />}
     </>
   );
 };

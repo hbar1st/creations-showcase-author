@@ -1,7 +1,7 @@
 import "../styles/App.css";
 import { setToken } from "../util/storage";
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 function Login({
   userDetails,
@@ -67,7 +67,7 @@ function Login({
         // grab the jwt token and store it!
         setToken(token)
         // todo show the showcase page
-        navigate("/private/author");
+        navigate("/private/author", {});
       } else {
         // show these errors somewhere
         const data = await res.json();

@@ -1,0 +1,10 @@
+.authorsMain {
+  display: grid;
+  grid-template-areas:
+    "header"
+    "projects";
+}
+
+.projectsHeading {
+  grid-area: header;
+}
