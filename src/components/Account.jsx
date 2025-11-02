@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router";
 import ValidationErrors from "./ValidationErrors.jsx";
 import styles from "../styles/Account.module.css";
-import { useGetAPI, callPutAPI, CS_API_URL } from "../util/apiUtils";
+import { useGetAPI, callAPI, CS_API_URL } from "../util/apiUtils";
 
 export default function Account() {
   const userProfile = useGetAPI("/user");
   const [successPopupShown, setSuccessPopupShown] = useState(false);
   const [progressShown, setProgressShown] = useState(false);
   const [validationDetails, setValidationDetails] = useState([]);
-
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const [userDetails, setUserDetails] = useState({
     email: null,
     firstname: null,
@@ -32,14 +35,14 @@ export default function Account() {
     }
   }, [progressShown]);
 
-    useEffect(() => {
-      if (!successPopupShown && successRef) {
-        successRef.current?.close();
-      } else {
-        successRef.current?.showModal();
-      }
-    }, [successPopupShown]);
-  
+  useEffect(() => {
+    if (!successPopupShown && successRef) {
+      successRef.current?.close();
+    } else {
+      successRef.current?.showModal();
+    }
+  }, [successPopupShown]);
+
   /**
    * this function will react to user typing in the fields and change the requirements for the passwords fields if the user types in them
    * @param {*} type
@@ -62,11 +65,52 @@ export default function Account() {
     setUserDetails(newUser);
   }
 
-    function handleOkBtn(e) {
-      e.preventDefault();
-      setSuccessPopupShown(false);
+  function handleOkBtn(e) {
+    e.preventDefault();
+    setSuccessPopupShown(false);
+  }
+
+  async function handleDeleteClick(e) {
+    e.preventDefault();
+        if (updateRef.current.hasAttribute("data-triggered")) {
+      return;
     }
-  
+    if (updateRef.current.hasAttribute("data-triggered")) {
+      return;
+    }
+    try {
+      updateRef.current.setAttribute("data-triggered", "true"); // try to stop listening to multiple button clicks
+      setProgressShown(true);
+      const res = await callAPI("DELETE", "/user");
+
+      if (res && res.status === 401) {
+        navigate(res.route, { state: location.pathname })
+      }
+
+      if (res && res.statusCode !== 400) {
+        console.log(
+          "result came back ok for account delete: ",
+          res
+        );
+        navigate("/", {});
+      } else {
+        // show these errors somewhere
+        console.log(
+          "result came back with errors? for account delete: ",
+          res
+        );
+        setValidationDetails(res.details);
+      }
+    } catch (error) {
+      console.log(error, error.stack);
+      throw new Error(error.message);
+    } finally {
+      setProgressShown(false);
+      updateRef.current.removeAttribute("data-triggered");
+    }
+  }
+
+
   async function updateAccount(formData) {
     if (updateRef.current.hasAttribute("data-triggered")) {
       return;
@@ -74,7 +118,11 @@ export default function Account() {
     try {
       updateRef.current.setAttribute("data-triggered", "true"); // try to stop listening to multiple button clicks
       setProgressShown(true);
-      const updateUserProfile = await callPutAPI("/user", formData);
+      const updateUserProfile = await callAPI("PUT", "/user", formData);
+
+      if (updateUserProfile && updateUserProfile.status === 401) {
+        navigate(updateUserProfile.route, { state: location.pathname })
+      }
 
       if (updateUserProfile && updateUserProfile.statusCode !== 400) {
         console.log(
@@ -198,6 +246,9 @@ export default function Account() {
               className="auth"
             />
             <div className="button-panel">
+              <button type="button" onClick={handleDeleteClick}>
+                Delete Account
+              </button>
               <button type="submit">Save</button>
             </div>
           </div>

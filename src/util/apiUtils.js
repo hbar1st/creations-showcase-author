@@ -10,40 +10,45 @@ export const getHeader = (token) => ({
   Authorization: `Bearer ${token}`,
 });
 
-
-export async function callPutAPI(route, formData) {
-    if (!getToken) {
-      console.trace(getToken);
-      throw new Error("Unexpected error: token is missing");
-    }
-    try {
-      const res = await fetch(`${CS_API_URL}${route}`, {
-        method: "PUT",
-        headers: getHeader(getToken()),
-        body: new URLSearchParams(formData),
-      });
-      if (res.status === 401) {
-        console.log("trying to get data but not authorized");
-        clearToken();
-        navigate("/login", { state: location.pathname });
-      } else if (res.ok || res.status === 400) {
-        const data = await res.json();
-        console.log("this is the data the page should show: ", data);
-        return data;
-      } else {
-        throw new Error(
-          "Internal error. Failed to contact the server. Contact support if the issue persists. Status code: " +
-            res.status
-        );
-      }
-    } catch (error) {
-      console.log(error, error.stack);
+export async function callAPI(action = "GET", route, formData = null) {
+  if (!getToken) {
+    console.trace(getToken);
+    throw new Error("Unexpected error: token is missing");
+  }
+  const requestObj = {
+    method: action,
+    headers: getHeader(getToken()),
+  };
+  if (formData) {
+    requestObj.body = new URLSearchParams(formData);
+  }
+  try {
+    const res = await fetch(`${CS_API_URL}${route}`, requestObj);
+    if (res.status === 401) {
+      console.log("trying to get data but not authorized");
+      clearToken();
+      return {
+        status: res.status,
+        navigate: "/login",
+        state: location.pathname,
+      };
+    } else if (res.ok || res.status === 400) {
+      const data = await res.json();
+      console.log("this is the data the page should show: ", data);
+      return data;
+    } else {
       throw new Error(
-        "Internal error. Failed to complete the request. Contact support if the issue persists"
+        "Internal error. Failed to contact the server. Contact support if the issue persists. Status code: " +
+          res.status
       );
     }
+  } catch (error) {
+    console.log(error, error.stack);
+    throw new Error(
+      "Internal error. Failed to complete the request. Contact support if the issue persists"
+    );
   }
-
+}
 
 export function useAuthorizeToken() {
   const [isAuthorized, setIsAuthorized] = useState(false);

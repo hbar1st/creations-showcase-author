@@ -70,10 +70,12 @@ form > div{
 }
 .button-panel {
   grid-column: 1 / -1;
+  justify-self: center;
   display: flex;
   flex-direction: row;
   column-gap: 1em;
-  justify-self: center;
+  justify-content: space-around;
+  width: 100%;
 }
 input:invalid {
   border: 1px solid red;

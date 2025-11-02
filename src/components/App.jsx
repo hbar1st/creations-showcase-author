@@ -10,33 +10,37 @@ import { useLocation } from "react-router";
 
 import { CS_API_URL, useAuthorizeToken } from "../util/apiUtils";
 
+const defaultUserValues = {
+  email: "",
+  firstname: "",
+  lastname: "",
+  nickname: "",
+  password: "",
+  "confirm-password": "",
+};
+
 function App() {
   // this is the creations showcase api url. It may change, so maybe place it in .env? //TODO consider the implications
   const CS_CLIENT = "https://"; // TODO fill this out with whatever your 2nd client url is
 
   const [loginFormShown, setLoginFormShown] = useState(false);
   const [signupFormShown, setSignupFormShown] = useState(false);
-  const [userDetails, setUserDetails] = useState({
-    email: "",
-    firstname: "",
-    lastname: "",
-    nickname: "",
-    password: "",
-    "confirm-password": "",
-  });
+
+  const [userDetails, setUserDetails] = useState(defaultUserValues);
   const [validationDetails, setValidationDetails] = useState([]);
   const [authDetails, setAuthDetails] = useState(null);
   const isAuthorized = useAuthorizeToken();
   const location = useLocation();
 
   useEffect(() => {
-    console.log("isAuthorized? ", isAuthorized)
-    
+    console.log("isAuthorized? ", isAuthorized);
+
     console.log("location.path is /login? ", location.pathname);
-    if (!isAuthorized && location.pathname === '/login') {
+    if (!isAuthorized && location.pathname === "/login") {
+      setUserDetails(defaultUserValues);
       setLoginFormShown(true);
     }
-  }, [location, isAuthorized]);
+  }, [isAuthorized, location.pathname]);
 
   function handleLoginClick() {
     setLoginFormShown(true);
