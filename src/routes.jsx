@@ -21,7 +21,7 @@ const routes = [
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "author",
+        path: "projects",
         element: <Author />,
       },
       {

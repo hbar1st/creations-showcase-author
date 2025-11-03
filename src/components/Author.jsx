@@ -1,4 +1,5 @@
 import { useGetAPI } from "../util/apiUtils";
+import Burger from "./Burger";
 
 import styles from "../styles/Author.module.css";
 import Projects from "./Projects";

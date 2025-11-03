@@ -1,7 +1,6 @@
 
 import '../styles/App.css'
-import burgerIcon from '../assets/hamburger_menu.svg'
-
+import Burger from "./Burger";
 import { clearToken } from "../util/storage";
 import { useNavigate } from "react-router";
 
@@ -12,7 +11,7 @@ function AuthorNavbar() {
   function handleLogoutClick(e) {
     e.preventDefault();
     clearToken();
-    navigate("/")
+    navigate("/", {})
   }
 
   function handleAccountClick() {
@@ -22,9 +21,7 @@ function AuthorNavbar() {
   return (
     <>
       <nav>
-        <button type="button">
-          <img src={burgerIcon} alt="menu" />
-        </button>
+        <Burger />
         <button type="button" onClick={handleAccountClick}>
           Account
         </button>
