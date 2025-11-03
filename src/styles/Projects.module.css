@@ -13,13 +13,73 @@
 }
 
 .projectCard {
+  box-shadow: 1px 1px 1px 1px gray;
   border-radius: 5px;
   padding: 2ch;
   width: 200px;
-  height: 250px;
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   background-color: #f8f0ff;
+  display: grid;
+  row-gap:  1ch;
+  grid-template-areas:
+    "image"
+    "title"
+    "socials";
+
+  > * {
+    padding: 0px;
+    margin: 0px
+  }
+  > p {
+    color: black;
+    font-size: small;
+    display: flex;
+
+    justify-content: space-around;
+  }
+}
+
+.projectSocials {
+  display: flex;
+  column-gap: 1ch;
+}
+.addProjectCard {
+  background: repeating-radial-gradient(white 0%, white 20%, #83a3d6 25%);
+  background-size: 5% 5%;
+  background-position: 0px 0px;
+  justify-content: stretch;
+  align-items: stretch;
+  grid-template-areas: 'button';
+
+  > button {
+      background-color: transparent;
+    color: #375aef;
+
+  
+  > p {
+    color: #5585f6;
+  }
+}
+}
+.checkbox {
+  justify-self: flex-start;
+  height: 3ch;
+  width: 3ch;
+  margin: 0;
+}
+
+.subButton {
+  background-color: transparent;
+  background: radial-gradient(white 0%, white 60%, #83a3d6);
+  color: #564f4f;
+  font-weight: 490;
+  border: 1px solid #564f4f;
+  border-radius: 0px;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.authLabel {
+  justify-self: flex-start;
 }

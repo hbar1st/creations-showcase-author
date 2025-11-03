@@ -81,7 +81,7 @@ function Signup({
 
   return (
     <>
-      <dialog id="favDialog" ref={signupRef}>
+      <dialog ref={signupRef}>
         <form action={signUp}>
           <div>
             <h2>Author Sign Up Form</h2>

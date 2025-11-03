@@ -105,7 +105,7 @@ export function useGetAPI(route) {
           navigate("/login", { state: location.pathname });
         } else if (res.ok) {
           const data = await res.json();
-          console.log("this is the data the loader should show: ", data.user);
+          console.log("this is the data the loader should show: ", data);
           setData(data);
         } else {
           throw new Error(

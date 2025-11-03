@@ -1,6 +1,6 @@
 import App from "./components/App";
 import ErrorPage from "./components/ErrorPage";
-import Author from "./components/Author";
+import Dashboard from "./components/Dashboard";
 import PrivateRoutes from "./components/PrivateRoutes";
 import Account from "./components/Account";
 
@@ -22,7 +22,7 @@ const routes = [
     children: [
       {
         path: "projects",
-        element: <Author />,
+        element: <Dashboard />,
       },
       {
         path: "account",

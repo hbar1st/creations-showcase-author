@@ -82,7 +82,7 @@ function Login({
 
   return (
     <>
-      <dialog id="favDialog" ref={loginRef}>
+      <dialog ref={loginRef}>
         <form action={login}>
           <div>
             <h2>Login</h2>

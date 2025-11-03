@@ -4,7 +4,7 @@ import Burger from "./Burger";
 import styles from "../styles/Author.module.css";
 import Projects from "./Projects";
 
-export default function Author() {
+export default function Dashboard() {
   const userProfile = useGetAPI('/user');
 
   if (userProfile) {
