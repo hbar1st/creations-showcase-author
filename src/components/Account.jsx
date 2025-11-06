@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router";
 import ValidationErrors from "./ValidationErrors.jsx";
 import styles from "../styles/Account.module.css";
-import { useGetAPI, callAPI, CS_API_URL } from "../util/apiUtils";
+import { useGetAPI, callAPI } from "../util/apiUtils";
 
 export default function Account() {
-  const userProfile = useGetAPI("/user");
+  const { data: userProfile } = useGetAPI("/user");
   const [successPopupShown, setSuccessPopupShown] = useState(false);
   const [progressShown, setProgressShown] = useState(false);
   const [validationDetails, setValidationDetails] = useState([]);
@@ -72,9 +72,7 @@ export default function Account() {
 
   async function handleDeleteClick(e) {
     e.preventDefault();
-        if (updateRef.current.hasAttribute("data-triggered")) {
-      return;
-    }
+    
     if (updateRef.current.hasAttribute("data-triggered")) {
       return;
     }
@@ -83,8 +81,8 @@ export default function Account() {
       setProgressShown(true);
       const res = await callAPI("DELETE", "/user");
 
-      if (res && res.status === 401) {
-        navigate(res.route, { state: location.pathname })
+      if (res && res.statusCode === 401) {
+        navigate(res.navigate, { state: location.pathname,  viewTransition: true })
       }
 
       if (res && res.statusCode !== 400) {
@@ -92,7 +90,7 @@ export default function Account() {
           "result came back ok for account delete: ",
           res
         );
-        navigate("/", {});
+        navigate("/", { state: null , viewTransition: true });
       } else {
         // show these errors somewhere
         console.log(
@@ -118,10 +116,15 @@ export default function Account() {
     try {
       updateRef.current.setAttribute("data-triggered", "true"); // try to stop listening to multiple button clicks
       setProgressShown(true);
+      if (formData.get('password') == "" && formData.get('confirm-password') == "") {
+        console.log("delete the password keys")
+        formData.delete('password');
+        formData.delete('confirm-password');
+      }
       const updateUserProfile = await callAPI("PUT", "/user", formData);
 
       if (updateUserProfile && updateUserProfile.status === 401) {
-        navigate(updateUserProfile.route, { state: location.pathname })
+        navigate(updateUserProfile.route, { state: location.pathname, viewTransition: true });
       }
 
       if (updateUserProfile && updateUserProfile.statusCode !== 400) {

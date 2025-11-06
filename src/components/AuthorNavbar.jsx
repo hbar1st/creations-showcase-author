@@ -11,11 +11,11 @@ function AuthorNavbar() {
   function handleLogoutClick(e) {
     e.preventDefault();
     clearToken();
-    navigate("/", {})
+    navigate("/", { state: null, viewTransition: true });
   }
 
   function handleAccountClick() {
-    navigate("/private/account")
+    navigate("/private/account", { viewTransition: true });
   }
 
   return (

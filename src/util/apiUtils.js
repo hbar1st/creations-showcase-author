@@ -11,8 +11,8 @@ export const getHeader = (token) => ({
 });
 
 export async function callAPI(action = "GET", route, formData = null) {
-  if (!getToken) {
-    console.trace(getToken);
+  if (!getToken()) {
+    console.trace("checking up on authorization: ", getToken());
     throw new Error("Unexpected error: token is missing");
   }
   const requestObj = {
@@ -28,7 +28,7 @@ export async function callAPI(action = "GET", route, formData = null) {
       console.log("trying to get data but not authorized");
       clearToken();
       return {
-        status: res.status,
+        statusCode: res.status,
         navigate: "/login",
         state: location.pathname,
       };
@@ -89,20 +89,26 @@ export function useGetAPI(route) {
   const location = useLocation();
 
   useEffect(() => {
+    const controller = new AbortController();
     async function callAPI() {
-      if (!getToken) {
-        console.trace(getToken);
+      if (!getToken()) {
+        console.trace(getToken());
         throw new Error("Unexpected error: token is missing");
       }
       try {
         const res = await fetch(`${CS_API_URL}${route}`, {
           method: "GET",
           headers: getHeader(getToken()),
+          signal: controller.signal,
         });
+
         if (res.status === 401) {
           console.log("trying to get user data but not authorized");
           clearToken();
-          navigate("/login", { state: location.pathname });
+          navigate("/login", {
+            state: location.pathname,
+            viewTransition: true,
+          });
         } else if (res.ok) {
           const data = await res.json();
           console.log("this is the data the loader should show: ", data);
@@ -113,6 +119,10 @@ export function useGetAPI(route) {
           );
         }
       } catch (error) {
+        if (error.name === "AbortError") {
+          console.log("Aborted duplicate call to useGetAPI");
+          return;
+        }
         console.log(error, error.stack);
         throw new Error(
           "Internal error. Failed to complete the request. Contact support if the issue persists"
@@ -122,7 +132,10 @@ export function useGetAPI(route) {
     if (route) {
       callAPI();
     }
+    
+    return () => controller.abort(); //clean up if needed
+
   }, [location.pathname, navigate, route]);
 
-  return data;
+  return { data, setData };
 }

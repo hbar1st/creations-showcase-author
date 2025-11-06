@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router";
 import { getToken } from "../util/storage";
-import AuthorNavbar from "../components/AuthorNavbar"
+import AuthorNavbar from "../components/AuthorNavbar";
+import styles from "../styles/Projects.module.css";
 
 export default function PrivateRoutes() {
   const authToken = getToken();
@@ -9,7 +10,16 @@ export default function PrivateRoutes() {
   return (
     <>
       <AuthorNavbar />
-      {authToken ? <Outlet /> : <Navigate to="/login" state={location.pathname} />}
+
+      <main className={styles.main}>
+        <section className={styles.projectsSection}>
+          {authToken ? (
+            <Outlet />
+          ) : (
+            <Navigate to="/login" state={location.pathname} />
+          )}
+        </section>
+      </main>
     </>
   );
-};
+}

@@ -1,22 +1,31 @@
-import { useGetAPI, callAPI } from "../util/apiUtils";
+import { useGetAPI, callAPI, CS_API_URL } from "../util/apiUtils";
+
+import ValidationErrors from "./ValidationErrors.jsx";
+import { clearToken, getToken } from "../util/storage";
 
 import { useNavigate, useLocation } from "react-router";
 import { useState, useEffect, useRef } from "react";
 
 import addIcon from "../assets/add-project.svg";
 import heartIcon from "../assets/heart.svg";
+import blackPen from "../assets/black-pen.svg";
 import commentIcon from "../assets/chat_bubble.svg";
 import styles from "../styles/Projects.module.css";
 
 export default function Projects() {
-  const projects = useGetAPI("/projects");
+  let { data: projects, setData: setProjects } = useGetAPI("/projects/user");
   const [projectDetails, setProjectDetails] = useState(null);
   const [projectFormShown, setProjectFormShown] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [errors, setErrors] = useState(null);
   const [validationDetails, setValidationDetails] = useState([]);
   const addProjectRef = useRef(null);
   const progressRef = useRef(null);
+  const uploadRef = useRef(null);
+  const fileRef = useRef(null);
 
   const [progressShown, setProgressShown] = useState(false);
+  const [uploadShown, setUploadShown] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,19 +36,29 @@ export default function Projects() {
         addProjectRef.current.showModal();
       } else {
         addProjectRef.current.close();
-        if (progressShown) {
-          progressRef.current.showModal();
-        }
-      }
-      if (!progressShown) {
-        progressRef.current.close();
       }
     }
-  }, [projectFormShown, progressShown]);
+  }, [projectFormShown]);
+
+  useEffect(() => {
+    if (uploadRef?.current) {
+      if (uploadShown) {
+        uploadRef.current.showModal();
+      } else {
+        uploadRef.current.close();
+      }
+    }
+  }, [uploadShown]);
+
+  useEffect(() => {
+    if (!progressShown && progressRef) {
+      progressRef.current?.close();
+    }
+  }, [progressShown]);
 
   function handleChange(type, value) {
-    const newUser = { ...projectDetails, [type]: value };
-    setProjectDetails(newUser);
+    const newProject = { ...projectDetails, [type]: value };
+    setProjectDetails(newProject);
   }
 
   function handleAddButtonClick(e) {
@@ -53,6 +72,98 @@ export default function Projects() {
     setProjectFormShown(false);
     setValidationDetails([]);
   }
+  function handleUploadCancelBtn(e) {
+    e.preventDefault();
+    setUploadShown(false);
+    setValidationDetails([]);
+  }
+
+  function handleUpdateProject(e) {
+    console.log("try to update this project: ", e.currentTarget);
+    
+    e.preventDefault(e);
+    const node = e.currentTarget;
+
+    const projectId = node.getAttribute("data_id");
+    
+    console.log("clicked on : ", e.target);
+    
+    console.log("project id : ", projectId);
+    if (e.target.getAttribute("data_type") !== "updateImage" && projectId) {
+      setSelectedProject(projectId);
+      navigate(`/private/project/${projectId}`, {
+        state: location.pathname, viewTransition: true });
+    }
+  }
+
+  function handleUpdateImage(e) {
+    e.preventDefault();
+    console.log("someone wants to update the image: ", e.target);
+    const node = e.target;
+    if (node.getAttribute("data_type") === "updateImage") {
+      console.log(
+        "user wants to update the featured image for: ",
+        node.getAttribute("data_id")
+      );
+      setSelectedProject(node.getAttribute("data_id"));
+      setUploadShown(true);
+    } else {
+      setUploadShown(false);
+    }
+  }
+
+  async function addImageToProject(formData) {
+    console.log(
+      "in addImageToProject: ",
+      fileRef.current,
+      fileRef.current.files
+    );
+
+    if (fileRef.current.files.item(0).size > Math.floor(10 * 1024 * 1024)) {
+      // no larger than 10MB for Cloudinary restrictions
+      setErrors("Image is too large. Maximum allowed size is 10 MB.");
+    } else {
+      if (uploadRef.current.hasAttribute("data-triggered")) {
+        return;
+      }
+      setProgressShown(true);
+      uploadRef.current.setAttribute("data-triggered", "true"); // try to stop listening to multiple button clicks
+      setUploadShown(false);
+      const requestObj = {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      };
+      requestObj.body = formData;
+      try {
+        console.log("the selected project: ", selectedProject);
+        const res = await fetch(
+          `${CS_API_URL}/projects/${selectedProject}/image`,
+          requestObj
+        );
+        if (res.status === 401) {
+          console.log("trying to get data but not authorized");
+          clearToken();
+
+          navigate("/login", { state: location.pathname, viewTransition: true });
+        } else if (res.ok || res.status === 400) {
+          const data = await res.json();
+          console.log("data returned after image upload: ", data);
+          navigate(0,  {state: null , viewTransition: true });
+        } else {
+          throw new Error(
+            "Internal error. Failed to contact the server. Contact support if the issue persists. Status code: " +
+              res.status
+          );
+        }
+      } catch (error) {
+        console.log(error, error.stack);
+        throw new Error(error.message);
+      } finally {
+        setProgressShown(false);
+        addProjectRef.current.removeAttribute("data-triggered");
+      }
+    }
+  }
 
   async function addProject(formData) {
     if (addProjectRef.current.hasAttribute("data-triggered")) {
@@ -63,178 +174,232 @@ export default function Projects() {
       setProgressShown(true);
       setProjectFormShown(false);
       const res = await callAPI("POST", "/projects", formData);
+      console.log("api call done");
 
-      setProgressShown(false);
-      if (res.status === 401) {
-        navigate(res.route, { state: location.pathname });
-      }
-      if (res.ok) {
-        const data = await res.json();
-        console.log(data);
-        setProjectFormShown(false);
-        // TODO update the state projectDetails array
-        setProjectDetails(data.projects);
-      } else if (res.status === 400) {
-        // show these errors somewhere
-        const data = await res.json();
-        console.log(data);
-        setValidationDetails(data.details);
+      switch (res.statusCode) {
+        case 500:
+          setErrors("Unknown server error while trying to add the project.");
+          break;
+        case 401:
+          navigate(res.navigate, { state: location.pathname, viewTransition: true });
+          break;
+        case 400:
+          // show these errors somewhere
+          console.log("got some validation errors back: ", res);
+          setValidationDetails(res.details);
+          break;
+        default:
+          console.log("in success route");
+          setProjectFormShown(false);
+          setProjectDetails([]);
+          navigate(0, { state: null, viewTransition: true });
       }
     } catch (error) {
       console.log(error, error.stack);
       throw new Error(error.message);
     } finally {
+      setProgressShown(false);
       addProjectRef.current.removeAttribute("data-triggered");
     }
   }
 
   if (projects) {
     return (
-      <section className={styles.projectsSection}>
-        <div className={`${styles.addProjectCard} ${styles.projectCard}`}>
-          <button onClick={handleAddButtonClick}>
-            <span>
-              <img src={addIcon} alt="add" />
-              <p>Add project</p>
-            </span>
-          </button>
-        </div>
-        {projects.result.map((project) => {
-          return (
-            <div className={styles.projectCard}>
-              <button type="button" className={styles.subButton}>
-                {project.images.length > 0
-                  ? `<img src=${project.images[0]} alt="featured image">)`
-                  : "Set Featured Image"}
-              </button>
-              <p>{project.title}</p>
-              <p>
-                <span className={styles.projectSocials}>
-                  <img src={heartIcon} alt="likes" /> {project._count.likes}
-                </span>{" "}
-                <span className={styles.projectSocials}>
-                  <img src={commentIcon} alt="comments" />{" "}
-                  {project._count.comments}
-                </span>
-              </p>
-            </div>
-          );
-        })}
-        <dialog ref={addProjectRef}>
-          <form action={addProject}>
-            <div>
-              <h2>Project Creation</h2>
-              <label className={styles.authLabel} htmlFor="title">
-                Title:{" "}
-              </label>
-              <input
-                value={projectDetails?.title}
-                onChange={(event) => handleChange("title", event.target.value)}
-                type="text"
-                name="title"
-                id="title"
-                required
-                maxLength="100"
-                minLength="1"
-                className="auth"
-              />
-              <label className={styles.authLabel} htmlFor="descr">
-                Description:{" "}
-              </label>
-              <textarea
-                rows="5"
-                onChange={(event) => handleChange("descr", event.target.value)}
-                name="descr"
-                id="descr"
-                required
-                className="auth"
+        <>
+          <div className={`${styles.addProjectCard} ${styles.projectCard}`}>
+            <button onClick={handleAddButtonClick}>
+              <span>
+                <img src={addIcon} alt="add" />
+                <p>Add project</p>
+              </span>
+            </button>
+          </div>
+          {projects.result.map((project) => {
+            return (
+              <div
+                key={project.id}
+                data_id={project.id}
+                className={styles.projectCard}
+                onClick={handleUpdateProject}
               >
-                {projectDetails?.descr}
-              </textarea>
-              <label className={styles.authLabel} htmlFor="live_link">
-                Live link:{" "}
-              </label>
-              <input
-                value={projectDetails?.live_link}
-                onChange={(event) =>
-                  handleChange("live_link", event.target.value)
-                }
-                type="url"
-                name="live_link"
-                id="live_link"
-                className="auth"
-              />
-              <label htmlFor="repo_link" className={styles.authLabel}>
-                Repository link:{" "}
-              </label>
-              <input
-                type="url"
-                name="repo_link"
-                id="repo_link"
-                className="auth"
-                value={projectDetails?.repo_link}
-                onChange={(event) =>
-                  handleChange("repo_link", event.target.value)
-                }
-              />
-              <label className={styles.authLabel} htmlFor="keywords">
-                Keywords:{" "}
-              </label>
-              <input
-                value={projectDetails?.keywords}
-                onChange={(event) =>
-                  handleChange("keywords", event.target.value)
-                }
-                type="text"
-                name="keywords"
-                id="keywords"
-                className="auth"
-              />
-              <label className={styles.authLabel} htmlFor="publish">
-                Publish now?{" "}
-              </label>
-              <input
-                className={`${styles.checkbox} auth`}
-                type="checkbox"
-                value={projectDetails?.published}
-                onChange={(event) =>
-                  handleChange("publish", event.target.value)
-                }
-                name="publish"
-                id="publish"
-              />
-              <div className="button-panel">
-                <button id="cancel" type="reset" onClick={handleCancelBtn}>
-                  Cancel
+                <p>{project.title}</p>
+                <button
+                  type="button"
+                  data_id={project.id}
+                  className={styles.subButton}
+                  data_type="updateImage"
+                  onClick={handleUpdateImage}
+                >
+                  {project.images.length > 0 ? (
+                    <img
+                      data_id={project.id}
+                      className={styles.projectImage}
+                      data_type="updateImage"
+                      src={project.images[0].url}
+                      alt="featured image"
+                    />
+                  ) : (
+                    "Set Featured Image"
+                  )}
                 </button>
-                <button type="submit">Submit</button>
+                <p>
+                  <span className={styles.projectSocials}>
+                    <img src={heartIcon} alt="likes" /> {project._count.likes}
+                  </span>{" "}
+                  <span className={styles.projectSocials}>
+                    <img src={commentIcon} alt="comments" />{" "}
+                    {project._count.comments}
+                  </span>
+                  <span>
+                    <img src={blackPen} alt="pen" />
+                    Edit
+                  </span>
+                </p>
               </div>
-            </div>
-          </form>
-        </dialog>
-        <dialog className="progress-dialog" ref={progressRef}>
-          <header>
-            <p>Please wait.</p>
-          </header>
-          <progress value={null} />
-        </dialog>
-        <dialog>
-          <form action="">
-            <label className={styles.authLabel} htmlFor="featured-image">
-              Featured image:{" "}
-            </label>
-            <input
-              type="file"
-              id="featured-image"
-              name="image"
-              accept="image/*"
-              className="auth"
-              onChange={(event) => handleChange("keywords", event.target.value)}
+            );
+          })}
+          {validationDetails && validationDetails.length > 0 && (
+            <ValidationErrors
+              details={validationDetails}
+              setDetails={setValidationDetails}
+              action="add project"
             />
-            <button type="button">Upload</button>
-          </form>
-        </dialog>
-      </section>
+          )}
+          <dialog ref={addProjectRef}>
+            <form action={addProject}>
+              <div>
+                <h2>Project Creation</h2>
+
+                <label className={styles.authLabel} htmlFor="title">
+                  Title:{" "}
+                </label>
+                <input
+                  value={projectDetails?.title}
+                  onChange={(event) =>
+                    handleChange("title", event.target.value)
+                  }
+                  type="text"
+                  name="title"
+                  id="title"
+                  required
+                  maxLength="100"
+                  minLength="1"
+                  className="auth"
+                />
+                <label className={styles.authLabel} htmlFor="descr">
+                  Description:{" "}
+                </label>
+                <textarea
+                  rows="5"
+                  onChange={(event) =>
+                    handleChange("descr", event.target.value)
+                  }
+                  name="descr"
+                  id="descr"
+                  required
+                  className="auth"
+                  value={projectDetails?.descr}
+                >
+                  {projectDetails?.descr}
+                </textarea>
+                <label className={styles.authLabel} htmlFor="live_link">
+                  Live link:{" "}
+                </label>
+                <input
+                  value={projectDetails?.live_link}
+                  onChange={(event) =>
+                    handleChange("live_link", event.target.value)
+                  }
+                  type="url"
+                  name="live_link"
+                  id="live_link"
+                  className="auth"
+                />
+                <label htmlFor="repo_link" className={styles.authLabel}>
+                  Repository link:{" "}
+                </label>
+                <input
+                  type="url"
+                  name="repo_link"
+                  id="repo_link"
+                  className="auth"
+                  value={projectDetails?.repo_link}
+                  onChange={(event) =>
+                    handleChange("repo_link", event.target.value)
+                  }
+                />
+                <label className={styles.authLabel} htmlFor="keywords">
+                  Keywords:{" "}
+                </label>
+                <input
+                  value={projectDetails?.keywords}
+                  onChange={(event) =>
+                    handleChange("keywords", event.target.value)
+                  }
+                  type="text"
+                  name="keywords"
+                  id="keywords"
+                  className="auth"
+                />
+                <label className={styles.authLabel} htmlFor="published">
+                  Publish now?{" "}
+                </label>
+                <input
+                  className={`${styles.checkbox} auth`}
+                  type="checkbox"
+                  value={projectDetails?.published ?? "false"}
+                  onChange={(event) =>
+                    handleChange("published", event.target.value)
+                  }
+                  name="published"
+                  id="published"
+                />
+                <div className="button-panel">
+                  <button id="cancel" type="reset" onClick={handleCancelBtn}>
+                    Cancel
+                  </button>
+                  <button type="submit">Submit</button>
+                </div>
+              </div>
+            </form>
+          </dialog>
+          <dialog className="progress-dialog" ref={progressRef}>
+            <header>
+              <p>Please wait.</p>
+            </header>
+            <progress value={null} />
+          </dialog>
+          <dialog className="progress-dialog" ref={uploadRef}>
+            <form action={addImageToProject}>
+              <div className={styles.fileUpload}>
+                <ul className={styles.errors}>{errors && <li>{errors}</li>}</ul>
+                <label className={styles.authLabel} htmlFor="featured-image">
+                  Featured image:{" "}
+                </label>
+                <input
+                  type="file"
+                  required
+                  id="featured-image"
+                  name="image"
+                  accept="image/*"
+                  className="auth"
+                  ref={fileRef}
+                  value={projectDetails?.image}
+                  onChange={(event) =>
+                    handleChange("image", event.target.value)
+                  }
+                />
+
+                <div className="button-panel">
+                  <button type="button" onClick={handleUploadCancelBtn}>
+                    Cancel
+                  </button>
+                  <button type="submit">Upload</button>
+                </div>
+              </div>
+            </form>
+          </dialog>
+        </>
     );
   } else {
     return <div>Loading...</div>;

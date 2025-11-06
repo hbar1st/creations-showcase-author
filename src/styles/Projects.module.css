@@ -1,3 +1,11 @@
+.main {
+  margin-top: 10vh;
+  display: grid;
+  grid-template-areas:
+    "header"
+    "projects";
+}
+
 .projectsSection {
   grid-area: projects;
   display: flex;
@@ -12,11 +20,19 @@
   border-radius: 10px;
 }
 
+.largeProjectCard {
+  
+  box-shadow: 1px 1px 1px 1px gray;
+  border-radius: 5px;
+  padding: 2ch;
+  background-color: #f8f0ff;
+}
 .projectCard {
   box-shadow: 1px 1px 1px 1px gray;
   border-radius: 5px;
   padding: 2ch;
   width: 200px;
+  min-height: 200px;
   align-items: center;
   justify-content: center;
   background-color: #f8f0ff;
@@ -26,6 +42,7 @@
     "image"
     "title"
     "socials";
+  grid-template-columns: 100%;
 
   > * {
     padding: 0px;
@@ -35,7 +52,8 @@
     color: black;
     font-size: small;
     display: flex;
-
+    font-weight: 600;
+    background-color: white;
     justify-content: space-around;
   }
 }
@@ -51,6 +69,7 @@
   justify-content: stretch;
   align-items: stretch;
   grid-template-areas: 'button';
+  grid-template-columns: 100%;
 
   > button {
       background-color: transparent;
@@ -76,10 +95,45 @@
   font-weight: 490;
   border: 1px solid #564f4f;
   border-radius: 0px;
-  width: 100%;
   aspect-ratio: 1;
+  min-width: 100%;
+  max-width: 100%;
+
 }
 
 .authLabel {
   justify-self: flex-start;
+}
+
+
+.fileUpload {
+  display: grid;
+  grid-template-columns: 1fr 1em 3fr;
+  grid-template-rows: auto auto;
+  max-width: clamp(350px, 30em, 500px);
+  row-gap: 1em;
+
+  > ul, h2 {
+    grid-column: 1 / -1;
+  }
+
+  > input {
+    min-height: 3ch;
+    align-self: center;
+  }
+}
+
+.errors {
+  color: red;
+  text-shadow: .5px .5px 0px purple;
+  letter-spacing: .2ch;
+  font-size: small;
+  list-style-type: none;
+  background-color: rgb(255, 196, 206);
+}
+
+.projectImage {
+  max-width: 100%;
+  min-width: 100%;
+  aspect-ratio: 1;
 }

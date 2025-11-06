@@ -6,8 +6,10 @@ export default function ValidationErrors({ details, setDetails, action }) {
 
   useEffect(() => {
     if (details && details.length > 0) {
+      console.log("supposed to show the validation modal now")
       errorRef.current.showModal();
     } else {
+      console.log("supposed to close the validation modal")
       errorRef.current.close();
     }
   }, [details]);

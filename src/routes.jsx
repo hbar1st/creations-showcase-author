@@ -3,6 +3,7 @@ import ErrorPage from "./components/ErrorPage";
 import Dashboard from "./components/Dashboard";
 import PrivateRoutes from "./components/PrivateRoutes";
 import Account from "./components/Account";
+import UpdateProject from "./components/UpdateProject";
 
 const routes = [
   {
@@ -27,6 +28,10 @@ const routes = [
       {
         path: "account",
         element: <Account />,
+      },
+      {
+        path: "project/:pid",
+        element: <UpdateProject />,
       },
     ],
   },

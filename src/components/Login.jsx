@@ -67,7 +67,10 @@ function Login({
         // grab the jwt token and store it!
         setToken(token);
         // todo show the showcase page
-        navigate(location.state ?? "/private/projects", {});
+        navigate(location.state ?? "/private/projects", {
+          state: null,
+          viewTransition: true,
+        });
       } else {
         // show these errors somewhere
         const data = await res.json();

@@ -1,14 +1,15 @@
 #root {
-  max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+      box-sizing: border-box;
+    max-width: min(1280px,100dvw);
 }
 
 nav {
   background-color: white;
   display: grid;
-  grid-template-columns: auto 1fr auto auto 0.5em;
+  grid-template-columns: auto 1fr auto auto 20px;
   grid-template-rows: auto;
   min-width: 100vw;
   position: fixed;
