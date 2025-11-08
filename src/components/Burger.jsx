@@ -33,7 +33,6 @@ function Burger() {
           }
         }
       }
-      
 
       if (openTheMenu) document.addEventListener("click", handleClickAnywhere );
 
@@ -84,9 +83,7 @@ function Burger() {
           </li>
 
           <li>
-            <a href="https://vercel.com/hbar1sts-projects/creations-showcase-user/7uTC436suGN2xK5ZzMGW6Ty1QmAb">
-              Showcase
-            </a>
+            <Link to="https://creations-showcase-user.vercel.app/">Showcase</Link>
           </li>
         </ul>
       </dialog>
