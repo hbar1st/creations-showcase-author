@@ -23,8 +23,7 @@ const defaultUserValues = {
 };
 
 function App() {
-  // this is the creations showcase api url. It may change, so maybe place it in .env? //TODO consider the implications
-  const CS_CLIENT = "https://"; // TODO fill this out with whatever your 2nd client url is
+  const CS_CLIENT = "https://creations-showcase-user.vercel.app/"; 
 
   const [loginFormShown, setLoginFormShown] = useState(false);
   const [signupFormShown, setSignupFormShown] = useState(false);
