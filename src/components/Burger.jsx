@@ -84,7 +84,9 @@ function Burger() {
           </li>
 
           <li>
-            <a href="http://">Showcase</a>
+            <a href="https://vercel.com/hbar1sts-projects/creations-showcase-user/7uTC436suGN2xK5ZzMGW6Ty1QmAb">
+              Showcase
+            </a>
           </li>
         </ul>
       </dialog>

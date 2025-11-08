@@ -1,5 +1,6 @@
 import "../styles/App.css";
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 
 function Signup({
   userDetails,
@@ -14,7 +15,19 @@ function Signup({
   const progressRef = useRef(null);
 
   const [progressShown, setProgressShown] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const navigate = useNavigate();
 
+    useEffect(() => {
+      if (error) {
+        navigate("/error", {
+          state: error,
+          viewTransition: true,
+        });
+      }
+    });
+  
   useEffect(() => {
     if (signupFormShown) {
       signupRef.current.showModal();
@@ -73,7 +86,8 @@ function Signup({
       }
     } catch (error) {
       console.log(error, error.stack);
-      throw new Error(error.message);
+      console.log("caught an error from calling fetch inside of Signup");
+      setError(error);
     } finally {
       signupRef.current.removeAttribute("data-triggered");
     }

@@ -17,6 +17,10 @@ const routes = [
     errorElement: <ErrorPage />,
   },
   {
+    path: "/error",
+    element: <ErrorPage />
+  },
+  {
     path: "/private",
     element: <PrivateRoutes />,
     errorElement: <ErrorPage />,

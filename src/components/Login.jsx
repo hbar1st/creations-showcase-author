@@ -5,8 +5,8 @@ import { useNavigate, useLocation } from "react-router";
 
 function Login({
   userDetails,
-  setDetails,
   setUserDetails,
+  setDetails,
   api,
   loginFormShown,
   setLoginFormShown,
@@ -15,23 +15,35 @@ function Login({
   const progressRef = useRef(null);
 
   const [progressShown, setProgressShown] = useState(false);
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (progressShown) {
+      progressRef.current.showModal();
+    } else {
+      progressRef.current.close();
+    }
+  }, [progressShown]);
 
   useEffect(() => {
     if (loginFormShown) {
       loginRef.current.showModal();
     } else {
       loginRef.current.close();
-      if (progressShown) {
-        progressRef.current.showModal();
-      }
     }
-    if (!progressShown) {
-      progressRef.current.close();
+  }, [loginFormShown]);
+
+  useEffect(() => {
+    if (error) {
+      navigate("/error", {
+        state: error,
+        viewTransition: true,
+      });
     }
-  }, [loginFormShown, progressShown]);
+  });
 
   function handleChange(type, value) {
     const newUser = { ...userDetails, [type]: value };
@@ -79,7 +91,8 @@ function Login({
       }
     } catch (error) {
       console.log(error, error.stack);
-      throw new Error(error.message);
+      console.log("caught an error from calling fetch inside of Login");
+      setError(error);
     }
   }
 

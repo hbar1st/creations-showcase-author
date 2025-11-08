@@ -27,6 +27,11 @@
   padding: 2ch;
   background-color: #f8f0ff;
 }
+
+.projectCard:hover {
+  background-color: #a85eeabf;
+  cursor: pointer;
+}
 .projectCard {
   box-shadow: 1px 1px 1px 1px gray;
   border-radius: 5px;
@@ -99,6 +104,17 @@
   min-width: 100%;
   max-width: 100%;
 
+}
+
+.subButton:hover {
+  box-shadow: 3px 3px 3px 1px #ff68f5, -3px -3px 3px 1px #ff68f5;
+ 
+
+}
+.projectCard:has(.subButton:hover) {
+  transform: scale(1);
+  
+  background-color: #f8f0ff;
 }
 
 .authLabel {

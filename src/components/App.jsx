@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useLocation } from "react-router";
+
 import "../styles/App.css";
+
 import Navbar from "./Navbar.jsx";
 import AuthorNavbar from "./AuthorNavbar.jsx";
 import Signup from "./Signup.jsx";
 import Login from "./Login.jsx";
 import ValidationErrors from "./ValidationErrors.jsx";
 import AuthError from "./AuthError.jsx";
-import { useLocation } from "react-router";
 
 import { CS_API_URL, useAuthorizeToken } from "../util/apiUtils";
+import ErrorPage from "./ErrorPage.jsx";
 
 const defaultUserValues = {
   email: "",
@@ -29,9 +32,10 @@ function App() {
   const [userDetails, setUserDetails] = useState(defaultUserValues);
   const [validationDetails, setValidationDetails] = useState([]);
   const [authDetails, setAuthDetails] = useState(null);
-  const isAuthorized = useAuthorizeToken();
+  const {isAuthorized, error: authError, loading: authLoading} = useAuthorizeToken();
   const location = useLocation();
 
+  
   useEffect(() => {
     console.log("isAuthorized? ", isAuthorized);
 
@@ -40,8 +44,15 @@ function App() {
       setUserDetails(defaultUserValues);
       setLoginFormShown(true);
     }
-  }, [isAuthorized, location.pathname]);
+    if (authError) {
+      console.log("hmm, there is an issue authenticating")
+    }
+    if (authLoading) {
+      console.log("loading message?")
+    }
+  }, [authError, authLoading, isAuthorized, location.pathname]);
 
+  
   function handleLoginClick() {
     setLoginFormShown(true);
   }
@@ -54,6 +65,13 @@ function App() {
     handleLoginClick,
     handleSignupClick,
   };
+
+  if (authLoading) {
+    return <p>Loading...</p>;
+  }
+  if (authError) {
+    return <ErrorPage />;
+  }
 
   return (
     <>

@@ -80,19 +80,21 @@ export default function Projects() {
 
   function handleUpdateProject(e) {
     console.log("try to update this project: ", e.currentTarget);
-    
+
     e.preventDefault(e);
     const node = e.currentTarget;
 
     const projectId = node.getAttribute("data_id");
-    
+
     console.log("clicked on : ", e.target);
-    
+
     console.log("project id : ", projectId);
     if (e.target.getAttribute("data_type") !== "updateImage" && projectId) {
       setSelectedProject(projectId);
       navigate(`/private/project/${projectId}`, {
-        state: location.pathname, viewTransition: true });
+        state: location.pathname,
+        viewTransition: true,
+      });
     }
   }
 
@@ -144,11 +146,14 @@ export default function Projects() {
           console.log("trying to get data but not authorized");
           clearToken();
 
-          navigate("/login", { state: location.pathname, viewTransition: true });
+          navigate("/login", {
+            state: location.pathname,
+            viewTransition: true,
+          });
         } else if (res.ok || res.status === 400) {
           const data = await res.json();
           console.log("data returned after image upload: ", data);
-          navigate(0,  {state: null , viewTransition: true });
+          navigate(0, { state: null, viewTransition: true });
         } else {
           throw new Error(
             "Internal error. Failed to contact the server. Contact support if the issue persists. Status code: " +
@@ -169,6 +174,14 @@ export default function Projects() {
     if (addProjectRef.current.hasAttribute("data-triggered")) {
       return;
     }
+
+    // sanitize published field
+    if (formData.get("published") === "null" || !formData.get("published")) {
+      formData.set("published", false);
+    } else {
+      formData.set("published", true);
+    }
+
     try {
       addProjectRef.current.setAttribute("data-triggered", "true"); // try to stop listening to multiple button clicks
       setProgressShown(true);
@@ -181,7 +194,10 @@ export default function Projects() {
           setErrors("Unknown server error while trying to add the project.");
           break;
         case 401:
-          navigate(res.navigate, { state: location.pathname, viewTransition: true });
+          navigate(res.navigate, {
+            state: location.pathname,
+            viewTransition: true,
+          });
           break;
         case 400:
           // show these errors somewhere
@@ -205,201 +221,195 @@ export default function Projects() {
 
   if (projects) {
     return (
-        <>
-          <div className={`${styles.addProjectCard} ${styles.projectCard}`}>
-            <button onClick={handleAddButtonClick}>
-              <span>
-                <img src={addIcon} alt="add" />
-                <p>Add project</p>
-              </span>
-            </button>
-          </div>
-          {projects.result.map((project) => {
-            return (
-              <div
-                key={project.id}
+      <>
+        <div className={`${styles.addProjectCard} ${styles.projectCard}`}>
+          <button onClick={handleAddButtonClick}>
+            <span>
+              <img src={addIcon} alt="add" />
+              <p>Add project</p>
+            </span>
+          </button>
+        </div>
+        {projects.result.map((project) => {
+          return (
+            <div
+              key={project.id}
+              data_id={project.id}
+              className={styles.projectCard}
+              onClick={handleUpdateProject}
+            >
+              <p>{project.title}</p>
+              <button
+                type="button"
                 data_id={project.id}
-                className={styles.projectCard}
-                onClick={handleUpdateProject}
+                className={styles.subButton}
+                data_type="updateImage"
+                onClick={handleUpdateImage}
               >
-                <p>{project.title}</p>
-                <button
-                  type="button"
-                  data_id={project.id}
-                  className={styles.subButton}
-                  data_type="updateImage"
-                  onClick={handleUpdateImage}
-                >
-                  {project.images.length > 0 ? (
-                    <img
-                      data_id={project.id}
-                      className={styles.projectImage}
-                      data_type="updateImage"
-                      src={project.images[0].url}
-                      alt="featured image"
-                    />
-                  ) : (
-                    "Set Featured Image"
-                  )}
+                {project.images.length > 0 ? (
+                  <img
+                    data_id={project.id}
+                    className={styles.projectImage}
+                    data_type="updateImage"
+                    src={project.images[0].url}
+                    alt="featured image"
+                  />
+                ) : (
+                  "Set Featured Image"
+                )}
+              </button>
+              <p>
+                <span className={styles.projectSocials}>
+                  <img src={heartIcon} alt="likes" /> {project._count.likes}
+                </span>{" "}
+                <span className={styles.projectSocials}>
+                  <img src={commentIcon} alt="comments" />{" "}
+                  {project._count.comments}
+                </span>
+                <span>
+                  <img src={blackPen} alt="pen" />
+                  Edit
+                </span>
+              </p>
+            </div>
+          );
+        })}
+        {validationDetails && validationDetails.length > 0 && (
+          <ValidationErrors
+            details={validationDetails}
+            setDetails={setValidationDetails}
+            action="add project"
+          />
+        )}
+        <dialog ref={addProjectRef}>
+          <form action={addProject}>
+            <div>
+              <h2>Project Creation</h2>
+
+              <label className={styles.authLabel} htmlFor="title">
+                Title:{" "}
+              </label>
+              <input
+                value={projectDetails?.title}
+                onChange={(event) => handleChange("title", event.target.value)}
+                type="text"
+                name="title"
+                id="title"
+                required
+                maxLength="100"
+                minLength="1"
+                className="auth"
+              />
+              <label className={styles.authLabel} htmlFor="descr">
+                Description:{" "}
+              </label>
+              <textarea
+                rows="5"
+                onChange={(event) => handleChange("descr", event.target.value)}
+                name="descr"
+                id="descr"
+                required
+                className="auth"
+                value={projectDetails?.descr}
+              >
+                {projectDetails?.descr}
+              </textarea>
+              <label className={styles.authLabel} htmlFor="live_link">
+                Live link:{" "}
+              </label>
+              <input
+                value={projectDetails?.live_link}
+                onChange={(event) =>
+                  handleChange("live_link", event.target.value)
+                }
+                type="url"
+                name="live_link"
+                id="live_link"
+                className="auth"
+              />
+              <label htmlFor="repo_link" className={styles.authLabel}>
+                Repository link:{" "}
+              </label>
+              <input
+                type="url"
+                name="repo_link"
+                id="repo_link"
+                className="auth"
+                value={projectDetails?.repo_link}
+                onChange={(event) =>
+                  handleChange("repo_link", event.target.value)
+                }
+              />
+              <label className={styles.authLabel} htmlFor="keywords">
+                Keywords:{" "}
+              </label>
+              <input
+                value={projectDetails?.keywords}
+                onChange={(event) =>
+                  handleChange("keywords", event.target.value)
+                }
+                type="text"
+                name="keywords"
+                id="keywords"
+                className="auth"
+              />
+              <label className={styles.authLabel} htmlFor="published">
+                Publish now?{" "}
+              </label>
+              <input
+                className={`${styles.checkbox} auth`}
+                type="checkbox"
+                value={projectDetails?.published ?? "false"}
+                onChange={(event) =>
+                  handleChange("published", event.target.value)
+                }
+                name="published"
+                id="published"
+              />
+              <div className="button-panel">
+                <button id="cancel" type="reset" onClick={handleCancelBtn}>
+                  Cancel
                 </button>
-                <p>
-                  <span className={styles.projectSocials}>
-                    <img src={heartIcon} alt="likes" /> {project._count.likes}
-                  </span>{" "}
-                  <span className={styles.projectSocials}>
-                    <img src={commentIcon} alt="comments" />{" "}
-                    {project._count.comments}
-                  </span>
-                  <span>
-                    <img src={blackPen} alt="pen" />
-                    Edit
-                  </span>
-                </p>
+                <button type="submit">Submit</button>
               </div>
-            );
-          })}
-          {validationDetails && validationDetails.length > 0 && (
-            <ValidationErrors
-              details={validationDetails}
-              setDetails={setValidationDetails}
-              action="add project"
-            />
-          )}
-          <dialog ref={addProjectRef}>
-            <form action={addProject}>
-              <div>
-                <h2>Project Creation</h2>
+            </div>
+          </form>
+        </dialog>
+        <dialog className="progress-dialog" ref={progressRef}>
+          <header>
+            <p>Please wait.</p>
+          </header>
+          <progress value={null} />
+        </dialog>
+        <dialog className="progress-dialog" ref={uploadRef}>
+          <form action={addImageToProject}>
+            <div className={styles.fileUpload}>
+              <ul className={styles.errors}>{errors && <li>{errors}</li>}</ul>
+              <label className={styles.authLabel} htmlFor="featured-image">
+                Featured image:{" "}
+              </label>
+              <input
+                type="file"
+                required
+                id="featured-image"
+                name="image"
+                accept="image/*"
+                className="auth"
+                ref={fileRef}
+                value={projectDetails?.image}
+                onChange={(event) => handleChange("image", event.target.value)}
+              />
 
-                <label className={styles.authLabel} htmlFor="title">
-                  Title:{" "}
-                </label>
-                <input
-                  value={projectDetails?.title}
-                  onChange={(event) =>
-                    handleChange("title", event.target.value)
-                  }
-                  type="text"
-                  name="title"
-                  id="title"
-                  required
-                  maxLength="100"
-                  minLength="1"
-                  className="auth"
-                />
-                <label className={styles.authLabel} htmlFor="descr">
-                  Description:{" "}
-                </label>
-                <textarea
-                  rows="5"
-                  onChange={(event) =>
-                    handleChange("descr", event.target.value)
-                  }
-                  name="descr"
-                  id="descr"
-                  required
-                  className="auth"
-                  value={projectDetails?.descr}
-                >
-                  {projectDetails?.descr}
-                </textarea>
-                <label className={styles.authLabel} htmlFor="live_link">
-                  Live link:{" "}
-                </label>
-                <input
-                  value={projectDetails?.live_link}
-                  onChange={(event) =>
-                    handleChange("live_link", event.target.value)
-                  }
-                  type="url"
-                  name="live_link"
-                  id="live_link"
-                  className="auth"
-                />
-                <label htmlFor="repo_link" className={styles.authLabel}>
-                  Repository link:{" "}
-                </label>
-                <input
-                  type="url"
-                  name="repo_link"
-                  id="repo_link"
-                  className="auth"
-                  value={projectDetails?.repo_link}
-                  onChange={(event) =>
-                    handleChange("repo_link", event.target.value)
-                  }
-                />
-                <label className={styles.authLabel} htmlFor="keywords">
-                  Keywords:{" "}
-                </label>
-                <input
-                  value={projectDetails?.keywords}
-                  onChange={(event) =>
-                    handleChange("keywords", event.target.value)
-                  }
-                  type="text"
-                  name="keywords"
-                  id="keywords"
-                  className="auth"
-                />
-                <label className={styles.authLabel} htmlFor="published">
-                  Publish now?{" "}
-                </label>
-                <input
-                  className={`${styles.checkbox} auth`}
-                  type="checkbox"
-                  value={projectDetails?.published ?? "false"}
-                  onChange={(event) =>
-                    handleChange("published", event.target.value)
-                  }
-                  name="published"
-                  id="published"
-                />
-                <div className="button-panel">
-                  <button id="cancel" type="reset" onClick={handleCancelBtn}>
-                    Cancel
-                  </button>
-                  <button type="submit">Submit</button>
-                </div>
+              <div className="button-panel">
+                <button type="button" onClick={handleUploadCancelBtn}>
+                  Cancel
+                </button>
+                <button type="submit">Upload</button>
               </div>
-            </form>
-          </dialog>
-          <dialog className="progress-dialog" ref={progressRef}>
-            <header>
-              <p>Please wait.</p>
-            </header>
-            <progress value={null} />
-          </dialog>
-          <dialog className="progress-dialog" ref={uploadRef}>
-            <form action={addImageToProject}>
-              <div className={styles.fileUpload}>
-                <ul className={styles.errors}>{errors && <li>{errors}</li>}</ul>
-                <label className={styles.authLabel} htmlFor="featured-image">
-                  Featured image:{" "}
-                </label>
-                <input
-                  type="file"
-                  required
-                  id="featured-image"
-                  name="image"
-                  accept="image/*"
-                  className="auth"
-                  ref={fileRef}
-                  value={projectDetails?.image}
-                  onChange={(event) =>
-                    handleChange("image", event.target.value)
-                  }
-                />
-
-                <div className="button-panel">
-                  <button type="button" onClick={handleUploadCancelBtn}>
-                    Cancel
-                  </button>
-                  <button type="submit">Upload</button>
-                </div>
-              </div>
-            </form>
-          </dialog>
-        </>
+            </div>
+          </form>
+        </dialog>
+      </>
     );
   } else {
     return <div>Loading...</div>;

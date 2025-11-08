@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { clearToken, getToken } from "../util/storage";
 
-// const CS_API_URL = "https://civic-janenna-hbar1stdev-7cb31133.koyeb.app";
+//export const CS_API_URL = "https://civic-janenna-hbar1stdev-7cb31133.koyeb.app";
 export const CS_API_URL = "http://localhost:3000";
 
 export const getHeader = (token) => ({
@@ -50,37 +50,60 @@ export async function callAPI(action = "GET", route, formData = null) {
   }
 }
 
+export const verifyToken = async () => {
+  if (getToken()) {
+    try {
+      const res = await fetch(`${CS_API_URL}/user/authenticate`, {
+        method: "GET",
+        headers: getHeader(getToken()),
+      });
+      if (res.status === 404 || res.status === 500) {
+        console.log("umm, api call didn't go thru?");
+        throw new Error("Internal Error. Contact support if error persists.");
+      } else if (!res.ok) {
+        console.log("about to clear the token in apiUtils");
+        clearToken();
+        return false;
+      } else if (res.ok) {
+        return true;
+      }
+    } catch (error) {
+      console.log("unexpected error when verifying token")
+      console.log(error, error.stack);
+      throw new Error(error.message);
+    }
+  } else {
+    return false;
+  }
+};
+
 export function useAuthorizeToken() {
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        const res = await fetch(`${CS_API_URL}/user/authenticate`, {
-          method: "GET",
-          headers: getHeader(getToken()),
-        });
-        if (res.status === 404) {
-          console.log("umm, api call didn't go thru?");
-          throw new Error("Internal Error. Contact support if error persists.");
-        } else if (!res.ok) {
-          console.log("about to clear the token in apiUtils");
-          clearToken();
-          setIsAuthorized(false);
-        } else if (res.ok) {
-          setIsAuthorized(true);
+    (async () => {
+      if (getToken()) {
+        try {
+          setLoading(true);
+          const result = await verifyToken();
+        
+          setIsAuthorized(result);
+        } catch (error) {
+          console.log("caught an error from calling verifyToken inside of useAuthorizeToken")
+          setError(error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.log(error, error.stack);
-        throw new Error(error.message);
+      } else {
+        setLoading(false)
+        setIsAuthorized(false);
       }
-    };
-    if (getToken()) {
-      verifyToken();
-    }
+    })();
   }, []);
-
-  return isAuthorized;
+  return { isAuthorized, error, loading };
 }
 
 export function useGetAPI(route) {
@@ -130,11 +153,14 @@ export function useGetAPI(route) {
       }
     }
     if (route) {
-      callAPI();
+      try {
+        callAPI();
+      } catch (error) {
+        navigate("/fail")
+      }
     }
-    
-    return () => controller.abort(); //clean up if needed
 
+    return () => controller.abort(); //clean up if needed
   }, [location.pathname, navigate, route]);
 
   return { data, setData };
