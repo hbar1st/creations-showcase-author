@@ -2,8 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { clearToken, getToken } from "../util/storage";
 
-//export const CS_API_URL = "https://civic-janenna-hbar1stdev-7cb31133.koyeb.app";
-export const CS_API_URL = "http://localhost:3000";
+const mode = import.meta.env.MODE;
+
+console.log("mode: ", mode);
+
+const CS_API_URL_DEV = "http://localhost:3000";
+const CS_API_URL_PROD = "https://civic-janenna-hbar1stdev-7cb31133.koyeb.app";
+
+export const CS_API_URL = mode=='development' ? CS_API_URL_DEV : CS_API_URL_PROD;
 
 export const getHeader = (token) => ({
   "Content-Type": "application/x-www-form-urlencoded",
