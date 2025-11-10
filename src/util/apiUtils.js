@@ -114,6 +114,7 @@ export function useAuthorizeToken() {
 
 export function useGetAPI(route) {
   const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -162,12 +163,16 @@ export function useGetAPI(route) {
       try {
         callAPI();
       } catch (error) {
-        navigate("/fail")
+        setError(error);
+        navigate("/error",{
+          state: error,
+          viewTransition: true,
+        });
       }
     }
 
     return () => controller.abort(); //clean up if needed
   }, [location.pathname, navigate, route]);
 
-  return { data, setData };
+  return { data, setData, error };
 }

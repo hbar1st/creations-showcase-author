@@ -5,7 +5,7 @@ export default function ErrorPage() {
   const location = useLocation();
   const cause = location.state;
   const error = useRouteError() ?? cause;
-  console.error(error, error.stack);
+  console.error(error, error?.stack);
 
   return (
     <div id="error-page">
