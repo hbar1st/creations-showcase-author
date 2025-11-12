@@ -120,7 +120,8 @@ export default function Projects() {
       fileRef.current,
       fileRef.current.files
     );
-
+    
+    uploadRef.current.innerText="Uploading"
     if (fileRef.current.files.item(0).size > Math.floor(10 * 1024 * 1024)) {
       // no larger than 10MB for Cloudinary restrictions
       setErrors("Image is too large. Maximum allowed size is 10 MB.");
@@ -151,8 +152,8 @@ export default function Projects() {
             viewTransition: true,
           });
         } else if (res.ok || res.status === 400) {
-          const data = await res.json();
-          console.log("data returned after image upload: ", data);
+          /*const data = await res.json();
+          console.log("data returned after image upload: ", data);*/
           navigate(0, { state: null, viewTransition: true });
         } else {
           throw new Error(
