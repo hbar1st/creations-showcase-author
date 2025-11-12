@@ -27,16 +27,20 @@ export default function UpdateProject() {
 
   // confirm we're still logged in
   useEffect(() => {
+    let ignore = false;
     (async () => {
       const result = await verifyToken();
 
-      if (!result) {
+      if (!result && !ignore) {
         navigate("/login", {
           state: location.pathname,
           viewTransition: true,
         });
       }
     })();
+        return () => {
+          ignore = true;
+        };
   }, [location.pathname, navigate]);
 
   /**

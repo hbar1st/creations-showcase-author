@@ -90,13 +90,16 @@ export function useAuthorizeToken() {
 
 
   useEffect(() => {
+    let ignore = false;
     (async () => {
       if (getToken()) {
         try {
           setLoading(true);
           const result = await verifyToken();
         
-          setIsAuthorized(result);
+          if (!ignore) {
+            setIsAuthorized(result);
+          }
         } catch (error) {
           console.log("caught an error from calling verifyToken inside of useAuthorizeToken")
           setError(error);
@@ -108,6 +111,9 @@ export function useAuthorizeToken() {
         setIsAuthorized(false);
       }
     })();
+        return () => {
+          ignore = true;
+        };
   }, []);
   return { isAuthorized, error, loading };
 }
@@ -119,6 +125,7 @@ export function useGetAPI(route) {
   const location = useLocation();
 
   useEffect(() => {
+    let ignore = false;
     const controller = new AbortController();
     async function callAPI() {
       if (!getToken()) {
@@ -140,9 +147,11 @@ export function useGetAPI(route) {
             viewTransition: true,
           });
         } else if (res.ok) {
-          const data = await res.json();
-          console.log("this is the data the loader should show: ", data);
-          setData(data);
+          if (!ignore) {
+            const data = await res.json();
+            console.log("this is the data the loader should show: ", data);
+            setData(data);
+          }
         } else {
           throw new Error(
             "Internal error. Failed to contact the server. Contact support if the issue persists."
@@ -171,7 +180,10 @@ export function useGetAPI(route) {
       }
     }
 
-    return () => controller.abort(); //clean up if needed
+    return () => {
+      controller.abort();
+      ignore = true;
+    }; //clean up if needed
   }, [location.pathname, navigate, route]);
 
   return { data, setData, error };
